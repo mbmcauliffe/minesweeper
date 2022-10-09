@@ -18,7 +18,8 @@ function newGame() {
 
 			const space = row.appendChild(document.createElement("td"));
 
-			space.setAttribute("onclick", "clickSpace(" + j + "," + i + ");");
+			space.setAttribute("data-x", j);
+			space.setAttribute("data-y", i);
 
 		}
 
@@ -27,6 +28,38 @@ function newGame() {
 	const minefield = document.getElementById("minefield");
 	minefield.style.setProperty("width", (width * 1.7) - 0.2 + "em");
 	minefield.replaceChildren(newTable);
+
+	const spaces = document.getElementsByTagName("td");
+
+	for ( i=0; i<spaces.length; i++ ) {
+
+		spaces[i].addEventListener("mousedown", clickHandle);
+
+	}
+
+}
+
+function clickHandle (event) {
+
+	if ( event.button === 2 ) {
+		setFlag( event.target.dataset.x, event.target.dataset.y );
+		return
+	}
+
+	clickSpace( event.target.dataset.x, event.target.dataset.y );
+
+}
+
+function setFlag( x, y ) {
+
+	event.preventDefault();
+
+	const space = getSpaceFromCoords( x, y );
+
+	space.style.setProperty("background", "url(./img/flag.png)");
+	space.style.setProperty("background-color", "hsl(0, 0%, 90%)");
+	space.style.setProperty("background-size", "cover");
+	space.removeEventListener("mousedown", clickHandle);
 
 }
 
@@ -55,7 +88,7 @@ function generateMineArray ( width, height ) {
 function placeMines (x, y) {
 	// Place a mine in a space based on random chance.
 
-	if ( Math.floor(Math.random() * 1.1) == 1 ) {
+	if ( Math.floor(Math.random() * 1.2) == 1 ) {
 		mineArray[y][x] = "M";
 
 		iterateAdjascent(x, y, (x, y)=>{
@@ -90,15 +123,17 @@ function iterateAdjascent (x, y, callback) {
 
 	for ( k= y-1; k <= y+1; k++ ) {
 
-		if( k<0 || k == mineArray.length ){
-			continue
-		}
-
 		for ( m= x-1; m <= x+1; m++ ) {
 
-			if( m<0 || m == mineArray[k].length ){
+			if( mineArray[k] == null ){
 				continue
 			}
+
+			if( mineArray[k][m] == null ){
+				continue
+			}
+
+			console.log("From [" + x + ", " + y + "], [" + m + ", " + k + "]");
 
 			callback(m, k);
 
@@ -108,13 +143,19 @@ function iterateAdjascent (x, y, callback) {
 
 }
 
-function clickSpace (x, y) {
+function getSpaceFromCoords ( x, y ) {
 
 	const minefield = document.getElementById("minefield");
 
 	const row = Array.from(minefield.children)[y];
 
 	const space = Array.from(row.children)[x];
+
+	return space
+
+}
+
+function clickSpace (x, y) {
 
 	if (mineArray[y][x] == "M") {
 
@@ -124,15 +165,33 @@ function clickSpace (x, y) {
 
 	}
 
+	showSpace( x, y );
+
+}
+
+function showSpace ( x, y ) {
+
+	const space = getSpaceFromCoords( x, y );
+
+	if (space == null) {
+		return
+	}
+
+	if(space.style.background != ""){
+		return
+	}
+
 	space.style.setProperty("background", "hsl(0, 0%, 90%)");
 
 	if (mineArray[y][x] == 0) {
 
-		iterateAdjascent(x, y, clickSpace);
+		iterateAdjascent(x, y, showSpace);
+
+	} else {
+
+		space.innerText = mineArray[y][x];
 
 	}
-
-	space.innerText = mineArray[y][x];
 
 }
 
