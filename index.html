@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Minesweeper | MBMcAuliffe.com</title>
+	<link rel='stylesheet' href='./css/global.css'>
+	<link rel='stylesheet' href='./css/minesweeper.css'>
+
+	<script type="text/javascript" src='./index.js' defer></script>
+</head>
+<body>
+
+	<div class="flexRow" style="position:absolute; z-index: 3; width: 60vw">
+
+		<div class="flexRow">
+			<div>Width:</div>
+			<input type="text" id="newGameWidth" value="10" style="width: 5em">
+		</div>
+
+		<div class="flexRow">
+			<div>Height:</div>
+			<input type="text" id="newGameHeight" value="10" style="width: 5em">
+		</div>
+
+		<div class="button" onclick="newGame();">New Game</div>
+
+	</div>
+
+	<main style="margin: 2em 1em 1em 1em; width: calc(100% - 2em)">
+
+		<table id="minefield">
+		</table>
+
+	</main>
+
+</body>
+</html>
