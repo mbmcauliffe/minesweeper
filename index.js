@@ -33,33 +33,31 @@ function newGame() {
 
 	for ( i=0; i<spaces.length; i++ ) {
 
-		spaces[i].addEventListener("mousedown", clickHandle);
+		spaces[i].addEventListener("mousedown", clickSpace);
+		spaces[i].addEventListener("mousedown", setFlag);
 
 	}
 
 }
 
-function clickHandle (event) {
+function setFlag( event ) {
 
-	if ( event.button === 2 ) {
-		setFlag( event.target.dataset.x, event.target.dataset.y );
+	if ( event.button !== 2 ) {
 		return
 	}
 
-	clickSpace( event.target.dataset.x, event.target.dataset.y );
-
-}
-
-function setFlag( x, y ) {
-
 	event.preventDefault();
+
+	const x = event.target.dataset.x;
+	const y = event.target.dataset.y;
 
 	const space = getSpaceFromCoords( x, y );
 
 	space.style.setProperty("background", "url(./img/flag.png)");
 	space.style.setProperty("background-color", "hsl(0, 0%, 90%)");
 	space.style.setProperty("background-size", "cover");
-	space.removeEventListener("mousedown", clickHandle);
+	space.removeEventListener("mousedown", clickSpace);
+	space.removeEventListener("mousedown", setFlag);
 
 }
 
@@ -88,7 +86,8 @@ function generateMineArray ( width, height ) {
 function placeMines (x, y) {
 	// Place a mine in a space based on random chance.
 
-	if ( Math.floor(Math.random() * 1.2) == 1 ) {
+// Coefficient should be 1.2 at production
+	if ( Math.floor(Math.random() * 1.0) == 1 ) {
 		mineArray[y][x] = "M";
 
 		iterateAdjascent(x, y, (x, y)=>{
@@ -135,7 +134,7 @@ function iterateAdjascent (x, y, callback) {
 
 			console.log("From [" + x + ", " + y + "], [" + m + ", " + k + "]");
 
-			callback(m, k);
+			//callback(m, k);
 
 		}
 
@@ -155,7 +154,14 @@ function getSpaceFromCoords ( x, y ) {
 
 }
 
-function clickSpace (x, y) {
+function clickSpace ( event ) {
+
+	if ( event.button === 2 ) {
+		return
+	}
+
+	const x = event.target.dataset.x;
+	const y = event.target.dataset.y;
 
 	if (mineArray[y][x] == "M") {
 
@@ -164,12 +170,6 @@ function clickSpace (x, y) {
 		return
 
 	}
-
-	showSpace( x, y );
-
-}
-
-function showSpace ( x, y ) {
 
 	const space = getSpaceFromCoords( x, y );
 
@@ -185,7 +185,7 @@ function showSpace ( x, y ) {
 
 	if (mineArray[y][x] == 0) {
 
-		iterateAdjascent(x, y, showSpace);
+		iterateAdjascent(x, y, ( x, y )=>{ getSpaceFromCoords( x, y ).click(); });
 
 	} else {
 
