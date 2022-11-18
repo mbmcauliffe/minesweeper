@@ -8,6 +8,8 @@ function newGame() {
 
 	generateMineArray(width, height);
 
+	console.log(mineArray);
+
 	const newTable = document.createDocumentFragment();
 
 	for ( i=0; i< height; i++ ) {
@@ -33,11 +35,18 @@ function newGame() {
 
 	for ( i=0; i<spaces.length; i++ ) {
 
-		spaces[i].addEventListener("mousedown", clickSpace);
-		spaces[i].addEventListener("mousedown", setFlag);
+		spaces[i].addEventListener("click", clickSpace);
+		spaces[i].addEventListener("click", setFlag);
 
 	}
 
+}
+
+window.oncontextmenu = function ( event ) {
+	// Prevent right-click menu on Chrome
+	event.preventDefault();
+	event.stopPropagation();
+	return 0
 }
 
 function setFlag( event ) {
@@ -56,8 +65,30 @@ function setFlag( event ) {
 	space.style.setProperty("background", "url(./img/flag.png)");
 	space.style.setProperty("background-color", "hsl(0, 0%, 90%)");
 	space.style.setProperty("background-size", "cover");
-	space.removeEventListener("mousedown", clickSpace);
-	space.removeEventListener("mousedown", setFlag);
+	space.removeEventListener("click", clickSpace);
+	space.removeEventListener("click", setFlag);
+	space.addEventListener("click", removeFlag);
+
+}
+
+function removeFlag ( event ) {
+
+	if ( event.button !== 2 ) {
+		return
+	}
+
+	event.preventDefault();
+
+	const x = event.target.dataset.x;
+	const y = event.target.dataset.y;
+
+	const space = getSpaceFromCoords( x, y );
+
+	space.style.removeProperty("background");
+	space.style.setProperty("background-color", "hsl(0, 0%, 100%)");
+	space.addEventListener("click", clickSpace);
+	space.addEventListener("click", setFlag);
+	space.removeEventListener("click", removeFlag);
 
 }
 
@@ -87,7 +118,7 @@ function placeMines (x, y) {
 	// Place a mine in a space based on random chance.
 
 // Coefficient should be 1.2 at production
-	if ( Math.floor(Math.random() * 1.0) == 1 ) {
+	if ( Math.floor(Math.random() * 1.2) == 1 ) {
 		mineArray[y][x] = "M";
 
 		iterateAdjascent(x, y, (x, y)=>{
@@ -120,6 +151,8 @@ function iterateSequentially (callback) {
 function iterateAdjascent (x, y, callback) {
 	// Perform a function on a given space and on each space touching the given space.
 
+	console.log(x + ", " + y + ": " + mineArray[y][x]);
+
 	for ( k= y-1; k <= y+1; k++ ) {
 
 		for ( m= x-1; m <= x+1; m++ ) {
@@ -132,9 +165,7 @@ function iterateAdjascent (x, y, callback) {
 				continue
 			}
 
-			console.log("From [" + x + ", " + y + "], [" + m + ", " + k + "]");
-
-			//callback(m, k);
+			callback(m, k);
 
 		}
 
@@ -184,6 +215,8 @@ function clickSpace ( event ) {
 	space.style.setProperty("background", "hsl(0, 0%, 90%)");
 
 	if (mineArray[y][x] == 0) {
+
+		console.log(x + ", " + y + ": " + mineArray[y][x]);
 
 		iterateAdjascent(x, y, ( x, y )=>{ getSpaceFromCoords( x, y ).click(); });
 
