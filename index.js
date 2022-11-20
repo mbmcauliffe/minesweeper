@@ -1,10 +1,12 @@
 var mineArray;
+var height;
+var width;
 
 function newGame() {
 	// Generate a new minefield with a given width and height.
 
-	const width = parseInt(document.getElementById("newGameWidth").value);
-	const height = parseInt(document.getElementById("newGameHeight").value);
+	width = parseInt(document.getElementById("newGameWidth").value);
+	height = parseInt(document.getElementById("newGameHeight").value);
 
 	generateMineArray(width, height);
 
@@ -60,7 +62,7 @@ function setFlag( event ) {
 	const x = event.target.dataset.x;
 	const y = event.target.dataset.y;
 
-	const space = getSpaceFromCoords( x, y );
+	const space = getSpaceFromCoords( y, x );
 
 	space.style.setProperty("background", "url(./img/flag.png)");
 	space.style.setProperty("background-color", "hsl(0, 0%, 90%)");
@@ -82,7 +84,7 @@ function removeFlag ( event ) {
 	const x = event.target.dataset.x;
 	const y = event.target.dataset.y;
 
-	const space = getSpaceFromCoords( x, y );
+	const space = getSpaceFromCoords( y, x );
 
 	space.style.removeProperty("background");
 	space.style.setProperty("background-color", "hsl(0, 0%, 100%)");
@@ -103,7 +105,7 @@ function generateMineArray ( width, height ) {
 	}
 
 	// Fill array with zeros
-	iterateSequentially((x, y)=>{
+	iterateSequentially((y, x)=>{
 
 		mineArray[y][x] = 0;
 
@@ -114,14 +116,14 @@ function generateMineArray ( width, height ) {
 
 }
 
-function placeMines (x, y) {
+function placeMines (y, x) {
 	// Place a mine in a space based on random chance.
 
 // Coefficient should be 1.2 at production
-	if ( Math.floor(Math.random() * 1.2) == 1 ) {
+	if ( Math.floor(Math.random() * 1.1) == 1 ) {
 		mineArray[y][x] = "M";
 
-		iterateAdjascent(x, y, (x, y)=>{
+		iterateAdjascent(y, x, (y, x)=>{
 
 			if (mineArray[y][x] != "M") {
 				mineArray[y][x]++
@@ -148,32 +150,42 @@ function iterateSequentially (callback) {
 
 }
 
-function iterateAdjascent (x, y, callback) {
+function iterateAdjascent (y, x, callback) {
 	// Perform a function on a given space and on each space touching the given space.
 
-	console.log(x + ", " + y + ": " + mineArray[y][x]);
+	var k;
+	var m;
 
-	for ( k= y-1; k <= y+1; k++ ) {
+	for ( k = y-1; k < y + 2; k++) {
 
-		for ( m= x-1; m <= x+1; m++ ) {
+		if ( k < 0 || k > height-1 ) {
+			continue
+		}
 
-			if( mineArray[k] == null ){
+		//console.log("k = " + k + ", y = " + y);
+
+		for ( m = x-1; m < x+2; m++ ) {
+
+			if ( m < 0 || m > height-1 ) {
 				continue
 			}
 
-			if( mineArray[k][m] == null ){
-				continue
-			}
+			//console.log("m = " + m + ", x = " + x);
 
-			callback(m, k);
+			console.log("From " + y + "," + x + ": " + k + "," + m);
+
+			callback( k,m );
 
 		}
 
 	}
 
+	delete(k);
+	delete(m);
+
 }
 
-function getSpaceFromCoords ( x, y ) {
+function getSpaceFromCoords ( y, x ) {
 
 	const minefield = document.getElementById("minefield");
 
@@ -194,6 +206,8 @@ function clickSpace ( event ) {
 	const x = event.target.dataset.x;
 	const y = event.target.dataset.y;
 
+	console.log("CLICKED " + y + ", " + x + ": " + mineArray[y][x]);
+
 	if (mineArray[y][x] == "M") {
 
 		gameOver();
@@ -202,7 +216,7 @@ function clickSpace ( event ) {
 
 	}
 
-	const space = getSpaceFromCoords( x, y );
+	const space = getSpaceFromCoords( y, x );
 
 	if (space == null) {
 		return
@@ -216,9 +230,9 @@ function clickSpace ( event ) {
 
 	if (mineArray[y][x] == 0) {
 
-		console.log(x + ", " + y + ": " + mineArray[y][x]);
+		console.log("ZERO " + x + ", " + y + ": " + mineArray[y][x]);
 
-		iterateAdjascent(x, y, ( x, y )=>{ getSpaceFromCoords( x, y ).click(); });
+		iterateAdjascent(y, x, ( y, x )=>{ getSpaceFromCoords( y, x ).click(); });
 
 	} else {
 
@@ -230,8 +244,10 @@ function clickSpace ( event ) {
 
 function gameOver() {
 	// End the game, preventing further actions and displaying each mine on the field.
+
+	console.log("GAME OVER //////////////////////////////////////////////////////");
 	
-	iterateSequentially(( x, y )=>{
+	iterateSequentially(( y, x )=>{
 
 		const minefield = document.getElementById("minefield");
 
